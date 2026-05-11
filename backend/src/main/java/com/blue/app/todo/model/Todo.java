@@ -11,7 +11,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-@Document(collection = "todo")
+@Document(collection = "todos")
 @Data
 @Builder
 @NoArgsConstructor
