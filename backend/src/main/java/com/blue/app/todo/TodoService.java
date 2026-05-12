@@ -1,16 +1,17 @@
-package com.blue.app.todo.service;
+package com.blue.app.todo;
 
-import com.blue.app.exception.ResourceNotFound;
-import com.blue.app.todo.model.Todo;
-import com.blue.app.todo.repository.TodoRepository;
-import com.mongodb.client.result.DeleteResult;
-import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+
+import com.blue.app.exception.ResourceNotFound;
+import com.blue.app.todo.dto.TodoResponse;
+import com.mongodb.client.result.DeleteResult;
+
+import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
@@ -18,8 +19,8 @@ public class TodoService {
     final TodoRepository repository;
     final MongoTemplate mongoTemplate;
 
-    public Page<Todo> getAllTodos(int page, int size) {
-        return repository.findAll(PageRequest.of(page, size));
+    public Page<TodoResponse> list(Pageable pageable) {
+        return repository.findAll(pageable).map(TodoResponse::from);
     }
 
     public Todo getTodoById(String id) {

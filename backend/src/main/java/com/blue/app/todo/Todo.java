@@ -1,4 +1,4 @@
-package com.blue.app.todo.model;
+package com.blue.app.todo;
 
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
