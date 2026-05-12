@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Pencil, Trash2, Plus } from "lucide-react";
+import { Loader2, Pencil, Trash2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -38,27 +38,47 @@ type Todo = {
     completed: boolean;
 };
 
-async function fetchTodos(): Promise<Todo[]> {
-    const res = await fetch(`${API}/api/v1/todos?size=20`);
+type PageInfo = {
+    size: number;
+    number: number;
+    totalElements: number;
+    totalPages: number;
+};
+
+async function fetchTodos(page: number): Promise<{ content: Todo[]; page: PageInfo }> {
+    const res = await fetch(`${API}/api/v1/todos?page=${page}&size=10`);
     if (!res.ok) throw new Error("Failed to load todos");
     const data = await res.json();
-    return data.results;
+    return { content: data.content, page: data.page };
 }
 
 export default function Home() {
     const [todos, setTodos] = useState<Todo[]>([]);
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageInfo, setPageInfo] = useState<PageInfo | null>(null);
 
-    const load = () =>
-        fetchTodos()
-            .then(setTodos)
-            .catch(() => toast.error("Could not load todos"));
+    const load = (page = currentPage) => {
+        setLoading(true);
+        fetchTodos(page)
+            .then(({ content, page: info }) => {
+                setTodos(content);
+                setPageInfo(info);
+                setCurrentPage(info.number);
+            })
+            .catch(() => toast.error("Could not load todos"))
+            .finally(() => setLoading(false));
+    };
 
     useEffect(() => {
         let cancelled = false;
-        fetchTodos()
-            .then((data) => {
-                if (!cancelled) setTodos(data);
+        fetchTodos(0)
+            .then(({ content, page: info }) => {
+                if (!cancelled) {
+                    setTodos(content);
+                    setPageInfo(info);
+                    setCurrentPage(info.number);
+                }
             })
             .catch(() => {
                 if (!cancelled) toast.error("Could not load todos");
@@ -99,8 +119,12 @@ export default function Home() {
                 method: "DELETE",
             });
             if (!res.ok) throw new Error();
-            setTodos((prev) => prev.filter((t) => t.id !== id));
             toast.success("Todo deleted");
+            const nextPage =
+                todos.length === 1 && currentPage > 0
+                    ? currentPage - 1
+                    : currentPage;
+            load(nextPage);
         } catch {
             toast.error("Failed to delete todo");
         }
@@ -113,7 +137,7 @@ export default function Home() {
                     <h1 className="text-2xl font-semibold tracking-tight">
                         Todos
                     </h1>
-                    <CreateDialog onCreated={load} />
+                    <CreateDialog onCreated={() => load(0)} />
                 </div>
 
                 {loading ? (
@@ -130,17 +154,44 @@ export default function Home() {
                         No todos yet.
                     </p>
                 ) : (
-                    <ul className="space-y-2">
-                        {todos.map((todo) => (
-                            <TodoRow
-                                key={todo.id}
-                                todo={todo}
-                                onToggle={handleToggle}
-                                onDelete={handleDelete}
-                                onEdited={load}
-                            />
-                        ))}
-                    </ul>
+                    <>
+                        <ul className="space-y-2">
+                            {todos.map((todo) => (
+                                <TodoRow
+                                    key={todo.id}
+                                    todo={todo}
+                                    onToggle={handleToggle}
+                                    onDelete={handleDelete}
+                                    onEdited={() => load(currentPage)}
+                                />
+                            ))}
+                        </ul>
+                        {pageInfo && pageInfo.totalPages > 1 && (
+                            <div className="flex items-center justify-between mt-6">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => load(currentPage - 1)}
+                                    disabled={currentPage === 0 || loading}
+                                >
+                                    <ChevronLeft />
+                                    Previous
+                                </Button>
+                                <span className="text-sm text-muted-foreground">
+                                    Page {currentPage + 1} of {pageInfo.totalPages}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => load(currentPage + 1)}
+                                    disabled={currentPage >= pageInfo.totalPages - 1 || loading}
+                                >
+                                    Next
+                                    <ChevronRight />
+                                </Button>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </div>
