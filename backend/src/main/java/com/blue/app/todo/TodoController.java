@@ -4,6 +4,7 @@ import com.blue.app.todo.dto.TodoCreateRequest;
 import com.blue.app.todo.dto.TodoResponse;
 import com.blue.app.todo.dto.TodoUpdateRequest;
 import com.blue.app.users.User;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1")
 @PreAuthorize("isAuthenticated()")
 @AllArgsConstructor
+@Tag(name = "Todos", description = "Per-user todo CRUD with pagination")
 public class TodoController {
     private final TodoService service;
 

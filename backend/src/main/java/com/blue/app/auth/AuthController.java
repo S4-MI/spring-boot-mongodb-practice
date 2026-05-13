@@ -4,6 +4,7 @@ import com.blue.app.auth.dto.AuthResponse;
 import com.blue.app.auth.dto.LoginRequest;
 import com.blue.app.auth.dto.RefreshRequest;
 import com.blue.app.auth.dto.RegisterRequest;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +16,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
+@Tag(name = "Auth", description = "Registration, login, and token refresh")
 public class AuthController {
     private final AuthService authService;
 

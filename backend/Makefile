@@ -1,4 +1,7 @@
-.PHONY: run build test clean
+.PHONY: run build test clean compile
+
+compile:
+	./gradlew compileJava
 
 run:
 	./gradlew bootRun

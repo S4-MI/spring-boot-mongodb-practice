@@ -1,6 +1,7 @@
 package com.blue.app.users;
 
 import com.blue.app.users.dto.ProfileResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/users")
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
+@Tag(name = "Users", description = "Current user profile")
 public class UserController {
 
     @GetMapping("/me")
