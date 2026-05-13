@@ -14,10 +14,11 @@ import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 public class MongoConfig {
 
     @Bean
-    MappingMongoConverter f(
+    MappingMongoConverter mappingMongoConverter(
             MongoDatabaseFactory factory,
             MongoCustomConversions conversions,
-            MongoMappingContext context) {
+            MongoMappingContext context
+    ) {
         DbRefResolver dbRefResolver = new DefaultDbRefResolver(factory);
         MappingMongoConverter converter = new MappingMongoConverter(dbRefResolver, context);
         converter.setCustomConversions(conversions);

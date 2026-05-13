@@ -7,6 +7,10 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,7 +24,26 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFound ex) {
         log.warn("Resource not found: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponse(ex.getMessage(), LocalDateTime.now()));
+                .body(new ErrorResponse(ex.getMessage(), LocalDateTime.now(), "not_found"));
+    }
+
+    @ExceptionHandler(EmailAlreadyInUseException.class)
+    public ResponseEntity<ErrorResponse> handleEmailConflict(EmailAlreadyInUseException ex) {
+        log.warn("Registration attempt with existing email: {}", ex.getEmail());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse("Email already in use", LocalDateTime.now(), "email_in_use"));
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("Invalid credentials", LocalDateTime.now(), "invalid_credentials"));
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidToken(InvalidTokenException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse(ex.getMessage(), LocalDateTime.now(), "token_invalid"));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -36,10 +59,23 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("Validation failed", LocalDateTime.now(), fieldErrors));
     }
 
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAuthorizationDenied(AuthorizationDeniedException ex) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAnonymous = auth == null || !auth.isAuthenticated()
+                || auth instanceof AnonymousAuthenticationToken;
+        if (isAnonymous) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse("Authentication required", LocalDateTime.now(), "not_authenticated"));
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("Access denied", LocalDateTime.now(), "forbidden"));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {
         log.error("Unhandled exception", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("An unexpected error occurred", LocalDateTime.now()));
+                .body(new ErrorResponse("An unexpected error occurred", LocalDateTime.now(), "internal_error"));
     }
 }

@@ -19,6 +19,7 @@ public record TodoResponse(
                 todo.getDescription(),
                 todo.isCompleted(),
                 todo.getCreatedAt(),
-                todo.getUpdatedAt());
+                todo.getUpdatedAt()
+        );
     }
 }
