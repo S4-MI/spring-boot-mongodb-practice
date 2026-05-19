@@ -1,6 +1,7 @@
 package com.blue.app.exception;
 
 import com.blue.app.dto.ErrorResponse;
+import jakarta.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -57,6 +58,25 @@ public class GlobalExceptionHandler {
         log.warn("Validation failed: {}", fieldErrors);
         return ResponseEntity.badRequest()
                 .body(new ErrorResponse("Validation failed", LocalDateTime.now(), fieldErrors));
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
+        Map<String, String> fieldErrors = ex.getConstraintViolations().stream()
+                .collect(Collectors.toMap(
+                        v -> v.getPropertyPath().toString(),
+                        v -> v.getMessage() != null ? v.getMessage() : "Invalid value",
+                        (a, b) -> a
+                ));
+        log.warn("Entity validation failed: {}", fieldErrors);
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse("Validation failed", LocalDateTime.now(), fieldErrors));
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleForbidden(ForbiddenException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse(ex.getMessage(), LocalDateTime.now(), "forbidden"));
     }
 
     @ExceptionHandler(AuthorizationDeniedException.class)

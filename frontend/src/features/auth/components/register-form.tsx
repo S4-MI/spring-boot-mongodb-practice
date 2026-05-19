@@ -36,7 +36,12 @@ export function RegisterForm() {
     const onSubmit = (data: RegisterInput) => {
         registerMutation.mutate(data, {
             onError: (error) => {
-                toast.error(parseApiError(error, "Registration failed. Please try again."));
+                toast.error(
+                    parseApiError(
+                        error,
+                        "Registration failed. Please try again.",
+                    ),
+                );
             },
         });
     };
@@ -97,7 +102,7 @@ export function RegisterForm() {
                         )}
                     </div>
                 </CardContent>
-                <CardFooter className="flex flex-col gap-3">
+                <CardFooter className="flex flex-col gap-3 mt-4">
                     <Button
                         type="submit"
                         className="w-full"
