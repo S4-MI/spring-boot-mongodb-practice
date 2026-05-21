@@ -139,8 +139,7 @@ public class ChatController {
             @PathVariable String chatId,
             @RequestBody @Valid AddParticipantRequest request) {
         String userId = ((User) auth.getPrincipal()).getId();
-        ParticipantResponse added = ParticipantResponse
-                .from(service.addParticipant(chatId, request.userId(), request.role(), userId));
+        ParticipantResponse added = service.addParticipant(chatId, request.userId(), request.role(), userId);
         return ResponseEntity.status(201).body(added);
     }
 
@@ -151,8 +150,7 @@ public class ChatController {
             @PathVariable String userId,
             @RequestBody @Valid UpdateParticipantRoleRequest request) {
         String requesterId = ((User) auth.getPrincipal()).getId();
-        return ParticipantResponse
-                .from(service.updateParticipantRole(chatId, userId, request.role(), requesterId));
+        return service.updateParticipantRole(chatId, userId, request.role(), requesterId);
     }
 
     @DeleteMapping("/{chatId}/participants/{userId}")

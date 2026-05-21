@@ -18,6 +18,8 @@ import com.blue.app.chat.repository.ChatRepository;
 import com.blue.app.chat.repository.MessageRepository;
 import com.blue.app.exception.ForbiddenException;
 import com.blue.app.exception.ResourceNotFound;
+import com.blue.app.users.User;
+import com.blue.app.users.UserRepository;
 
 import lombok.AllArgsConstructor;
 
@@ -28,6 +30,7 @@ public class ChatService {
     private final ChatRepository chatRepository;
     private final MessageRepository messageRepository;
     private final ChatParticipantRepository participantRepository;
+    private final UserRepository userRepository;
 
     // ── Chat ──────────────────────────────────────────────────────────────────
 
@@ -143,11 +146,15 @@ public class ChatService {
         requireChat(chatId);
         requireParticipant(chatId, requesterId);
         return participantRepository.findByChatId(chatId).stream()
-                .map(ParticipantResponse::from)
+                .map(p -> {
+                    User user = userRepository.findById(p.getUserId())
+                            .orElseThrow(() -> new ResourceNotFound("User", p.getUserId()));
+                    return ParticipantResponse.from(p, user);
+                })
                 .toList();
     }
 
-    public ChatParticipant addParticipant(String chatId, String userId, Role role, String requesterId) {
+    public ParticipantResponse addParticipant(String chatId, String userId, Role role, String requesterId) {
         requireChat(chatId);
         requireRole(chatId, requesterId, Role.ADMIN);
 
@@ -156,18 +163,25 @@ public class ChatService {
                 .userId(userId)
                 .role(role)
                 .build();
+        participant = participantRepository.save(participant);
 
-        return participantRepository.save(participant);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFound("User", userId));
+        return ParticipantResponse.from(participant, user);
     }
 
-    public ChatParticipant updateParticipantRole(String chatId, String userId, Role role, String requesterId) {
+    public ParticipantResponse updateParticipantRole(String chatId, String userId, Role role, String requesterId) {
         requireRole(chatId, requesterId, Role.ADMIN);
 
         ChatParticipant participant = participantRepository.findByChatIdAndUserId(chatId, userId)
                 .orElseThrow(() -> new ResourceNotFound("Participant", userId));
 
         participant.setRole(role);
-        return participantRepository.save(participant);
+        participant = participantRepository.save(participant);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFound("User", userId));
+        return ParticipantResponse.from(participant, user);
     }
 
     public void removeParticipant(String chatId, String userId, String requesterId) {
