@@ -40,13 +40,14 @@ export function useMessages(
     chatId: string,
     page: number = 0,
     size: number = 50,
+    refetchInterval: number | false = 5000,
 ) {
     return useQuery({
         queryKey: chatKeys.messages(chatId, page, size),
         queryFn: () => chatsApi.listMessages(chatId, page, size),
         enabled: Boolean(chatId),
         placeholderData: keepPreviousData,
-        refetchInterval: 3000,
+        refetchInterval,
     });
 }
 

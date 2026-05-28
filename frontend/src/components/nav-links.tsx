@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 const links = [
     { href: "/todos", label: "Todos" },
     { href: "/chats", label: "Chats" },
+    { href: "/chats-ws", label: "Chats (WS)" },
 ];
 
 export function NavLinks() {
