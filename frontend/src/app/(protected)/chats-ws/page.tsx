@@ -1,8 +1,8 @@
 "use client";
 
-import { ChatWsView } from "@/features/chats-ws/components/chat-view";
 import { ChatList } from "@/features/chats/components/chat-list";
-import { ChatViewEmpty } from "@/features/chats/components/chat-view";
+import { ChatView, ChatViewEmpty } from "@/features/chats/components/chat-view";
+import { MessageWsList } from "@/features/chats-ws/components/message-list";
 import { Chat } from "@/features/chats/schemas";
 import { useState } from "react";
 
@@ -19,7 +19,7 @@ export default function ChatsWsPage() {
             </aside>
             <main className="flex-1 flex flex-col min-w-0">
                 {selectedChat ? (
-                    <ChatWsView key={selectedChat.id} chat={selectedChat} />
+                    <ChatView key={selectedChat.id} chat={selectedChat} messageList={<MessageWsList chatId={selectedChat.id} />} />
                 ) : (
                     <ChatViewEmpty />
                 )}
