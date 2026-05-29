@@ -33,7 +33,6 @@ import com.blue.app.users.User;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @RestController
 @RequestMapping("/api/v1/chats")
@@ -43,7 +42,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 public class ChatController {
 
     private final ChatService service;
-    private final SimpMessagingTemplate messagingTemplate;
 
     // ── Chat ──────────────────────────────────────────────────────────────────
 
@@ -104,10 +102,6 @@ public class ChatController {
             @RequestBody @Valid SendMessageRequest request) {
         String userId = ((User) auth.getPrincipal()).getId();
         MessageResponse sent = MessageResponse.from(service.sendMessage(chatId, request.content(), userId));
-
-        // TODO: manage this from somewhere
-        messagingTemplate.convertAndSend("/topic/chats/" + chatId + "/messages", sent);
-
         return ResponseEntity.status(201).body(sent);
     }
 

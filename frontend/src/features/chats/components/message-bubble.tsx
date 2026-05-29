@@ -11,7 +11,10 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Message } from "@/features/chats/schemas";
-import { useEditMessage, useDeleteMessage } from "@/features/chats/use-chat-mutations";
+import {
+    useEditMessage,
+    useDeleteMessage,
+} from "@/features/chats/use-chat-mutations";
 
 interface MessageBubbleProps {
     message: Message;
@@ -31,7 +34,11 @@ export function MessageBubble({ message, isOwn }: MessageBubbleProps) {
             return;
         }
         editMessage.mutate(
-            { chatId: message.chatId, messageId: message.id, content: editContent.trim() },
+            {
+                chatId: message.chatId,
+                messageId: message.id,
+                content: editContent.trim(),
+            },
             { onSuccess: () => setEditing(false) },
         );
     };
@@ -40,9 +47,23 @@ export function MessageBubble({ message, isOwn }: MessageBubbleProps) {
         deleteMessage.mutate({ chatId: message.chatId, messageId: message.id });
     };
 
+    if (message.type === "system") {
+        return (
+            <div className="flex justify-center">
+                <span className="text-xs text-muted-foreground bg-muted/50 rounded-full px-3 py-1">
+                    {message.content}
+                </span>
+            </div>
+        );
+    }
+
     return (
-        <div className={`flex gap-2 group ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
-            <div className={`max-w-[70%] ${isOwn ? "items-end" : "items-start"} flex flex-col gap-1`}>
+        <div
+            className={`flex gap-2 group ${isOwn ? "flex-row-reverse" : "flex-row"}`}
+        >
+            <div
+                className={`max-w-[70%] ${isOwn ? "items-end" : "items-start"} flex flex-col gap-1`}
+            >
                 {editing ? (
                     <form onSubmit={handleEditSubmit} className="flex gap-2">
                         <Input
@@ -51,8 +72,16 @@ export function MessageBubble({ message, isOwn }: MessageBubbleProps) {
                             autoFocus
                             className="text-sm"
                         />
-                        <Button type="submit" size="sm" disabled={editMessage.isPending}>
-                            {editMessage.isPending ? <Loader2 className="animate-spin" /> : "Save"}
+                        <Button
+                            type="submit"
+                            size="sm"
+                            disabled={editMessage.isPending}
+                        >
+                            {editMessage.isPending ? (
+                                <Loader2 className="animate-spin" />
+                            ) : (
+                                "Save"
+                            )}
                         </Button>
                         <Button
                             type="button"
@@ -89,7 +118,9 @@ export function MessageBubble({ message, isOwn }: MessageBubbleProps) {
             {isOwn && !editing && (
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity self-center">
                     <DropdownMenu>
-                        <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+                        <DropdownMenuTrigger
+                            render={<Button variant="ghost" size="icon-sm" />}
+                        >
                             <MoreHorizontal />
                             <span className="sr-only">Message options</span>
                         </DropdownMenuTrigger>

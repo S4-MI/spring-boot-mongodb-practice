@@ -3,11 +3,13 @@
 import { ChatList } from "@/features/chats/components/chat-list";
 import { ChatView, ChatViewEmpty } from "@/features/chats/components/chat-view";
 import { MessageWsList } from "@/features/chats-ws/components/message-list";
+import { useChatListSocket } from "@/features/chats-ws/use-chat-list-socket";
 import { Chat } from "@/features/chats/schemas";
 import { useState } from "react";
 
 export default function ChatsWsPage() {
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+    useChatListSocket();
 
     return (
         <div className="flex h-[calc(100vh-49px)]">

@@ -9,6 +9,7 @@ import com.blue.app.common.BaseModel;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -34,4 +35,7 @@ public class Message extends BaseModel {
     @NotBlank
     @Field(name = "sender_id")
     private String senderId;
+
+    @Builder.Default
+    private MessageType type = MessageType.TEXT;
 }

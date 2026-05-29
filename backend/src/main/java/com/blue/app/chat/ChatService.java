@@ -9,9 +9,11 @@ import org.springframework.stereotype.Service;
 import com.blue.app.chat.dto.response.ChatResponse;
 import com.blue.app.chat.dto.response.MessageResponse;
 import com.blue.app.chat.dto.response.ParticipantResponse;
+import com.blue.app.chat.dto.ws.ChatListEvent;
 import com.blue.app.chat.models.Chat;
 import com.blue.app.chat.models.ChatParticipant;
 import com.blue.app.chat.models.Message;
+import com.blue.app.chat.models.MessageType;
 import com.blue.app.chat.models.Role;
 import com.blue.app.chat.repository.ChatParticipantRepository;
 import com.blue.app.chat.repository.ChatRepository;
@@ -31,6 +33,7 @@ public class ChatService {
     private final MessageRepository messageRepository;
     private final ChatParticipantRepository participantRepository;
     private final UserRepository userRepository;
+    private final ChatEventPublisher events;
 
     // ── Chat ──────────────────────────────────────────────────────────────────
 
@@ -57,6 +60,7 @@ public class ChatService {
                 .build();
         participantRepository.save(participant);
 
+        events.chatListChanged(creatorId, ChatListEvent.CHAT_ADDED, chat.getId());
         return chat;
     }
 
@@ -105,7 +109,10 @@ public class ChatService {
                 .senderId(senderId)
                 .build();
 
-        return messageRepository.save(message);
+        message = messageRepository.save(message);
+        events.messageCreated(chatId, MessageResponse.from(message));
+        broadcastChatListUpdated(chatId);
+        return message;
     }
 
     public Message editMessage(String chatId, String messageId, String content, String requesterId) {
@@ -167,6 +174,14 @@ public class ChatService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFound("User", userId));
+
+        String actorName = displayName(requesterId);
+        systemMessage(chatId, requesterId, actorName + " added " + user.getName());
+
+        // New participant learns the chat appeared; existing members see it bump.
+        events.chatListChanged(userId, ChatListEvent.CHAT_ADDED, chatId);
+        broadcastChatListUpdated(chatId);
+
         return ParticipantResponse.from(participant, user);
     }
 
@@ -190,10 +205,45 @@ public class ChatService {
         if (!isSelf) {
             requireRole(chatId, requesterId, Role.ADMIN);
         }
+
+        String targetName = displayName(userId);
         participantRepository.deleteByChatIdAndUserId(chatId, userId);
+
+        String text = isSelf
+                ? targetName + " left"
+                : displayName(requesterId) + " removed " + targetName;
+        systemMessage(chatId, requesterId, text);
+
+        // Removed user drops the chat; remaining members see it bump.
+        events.chatListChanged(userId, ChatListEvent.CHAT_REMOVED, chatId);
+        broadcastChatListUpdated(chatId);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /** Persist a SYSTEM message and broadcast it like any other message. */
+    private void systemMessage(String chatId, String actorId, String text) {
+        Message message = Message.builder()
+                .chatId(chatId)
+                .content(text)
+                .senderId(actorId)
+                .type(MessageType.SYSTEM)
+                .build();
+        message = messageRepository.save(message);
+        events.messageCreated(chatId, MessageResponse.from(message));
+    }
+
+    /** Tell every participant of a chat that their chat list bumped. */
+    private void broadcastChatListUpdated(String chatId) {
+        participantRepository.findByChatId(chatId).forEach(
+                p -> events.chatListChanged(p.getUserId(), ChatListEvent.CHAT_UPDATED, chatId));
+    }
+
+    private String displayName(String userId) {
+        return userRepository.findById(userId)
+                .map(User::getName)
+                .orElse("Someone");
+    }
 
     private Chat requireChat(String chatId) {
         return chatRepository.findById(chatId).orElseThrow(() -> new ResourceNotFound("Chat", chatId));
