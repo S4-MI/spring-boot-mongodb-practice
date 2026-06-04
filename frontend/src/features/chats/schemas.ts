@@ -16,13 +16,21 @@ export const chatSchema = z.object({
     updatedAt: z.string(),
 });
 
+export const messageTypeSchema = z.enum(["text", "system"]).default("text");
+
 export const messageSchema = z.object({
     id: z.string(),
     chatId: z.string(),
     senderId: z.string(),
     content: z.string(),
+    type: messageTypeSchema,
     createdAt: z.string(),
     updatedAt: z.string(),
+});
+
+export const chatListEventSchema = z.object({
+    type: z.enum(["CHAT_ADDED", "CHAT_REMOVED", "CHAT_UPDATED"]),
+    data: z.object({ chatId: z.string() }),
 });
 
 export const roleSchema = z.enum(["member", "moderator", "admin"]);
@@ -52,7 +60,10 @@ export const paginatedMessagesSchema = z.object({
 });
 
 export const createChatSchema = z.object({
-    name: z.string().min(2, "Name must be at least 2 characters").max(30, "Name must be at most 30 characters"),
+    name: z
+        .string()
+        .min(2, "Name must be at least 2 characters")
+        .max(30, "Name must be at most 30 characters"),
     description: z.string().max(500).optional(),
 });
 
@@ -76,6 +87,8 @@ export const updateParticipantRoleSchema = z.object({
 
 export type Chat = z.infer<typeof chatSchema>;
 export type Message = z.infer<typeof messageSchema>;
+export type MessageType = z.infer<typeof messageTypeSchema>;
+export type ChatListEvent = z.infer<typeof chatListEventSchema>;
 export type Participant = z.infer<typeof participantSchema>;
 export type ParticipantUser = z.infer<typeof participantUserSchema>;
 export type Role = z.infer<typeof roleSchema>;
@@ -86,4 +99,6 @@ export type CreateChatInput = z.infer<typeof createChatSchema>;
 export type UpdateChatInput = z.infer<typeof updateChatSchema>;
 export type SendMessageInput = z.infer<typeof sendMessageSchema>;
 export type AddParticipantInput = z.infer<typeof addParticipantSchema>;
-export type UpdateParticipantRoleInput = z.infer<typeof updateParticipantRoleSchema>;
+export type UpdateParticipantRoleInput = z.infer<
+    typeof updateParticipantRoleSchema
+>;

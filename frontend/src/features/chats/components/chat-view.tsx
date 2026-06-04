@@ -5,12 +5,14 @@ import { MessageList } from "./message-list";
 import { MessageInput } from "./message-input";
 import { ParticipantsPanel } from "./participants-panel";
 import type { Chat } from "@/features/chats/schemas";
+import type { ReactNode } from "react";
 
 interface ChatViewProps {
     chat: Chat;
+    messageList?: ReactNode;
 }
 
-export function ChatView({ chat }: ChatViewProps) {
+export function ChatView({ chat, messageList }: ChatViewProps) {
     return (
         <div className="flex flex-col h-full">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
@@ -23,7 +25,7 @@ export function ChatView({ chat }: ChatViewProps) {
                 <ParticipantsPanel chatId={chat.id} creatorId={chat.creatorId} />
             </div>
 
-            <MessageList chatId={chat.id} />
+            {messageList ?? <MessageList chatId={chat.id} />}
             <MessageInput chatId={chat.id} />
         </div>
     );
