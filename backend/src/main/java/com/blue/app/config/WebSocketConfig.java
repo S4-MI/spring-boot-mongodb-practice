@@ -1,5 +1,6 @@
 package com.blue.app.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -16,9 +17,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final WebSocketAuthInterceptors webSocketAuthInterceptors;
 
+    @Value("${app.cors.allowed-origins:http://localhost:3000}")
+    private String[] allowedOrigins;
+
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/api/v1/ws").setAllowedOriginPatterns("http://localhost:3000");
+        registry.addEndpoint("/api/v1/ws").setAllowedOriginPatterns(allowedOrigins);
     }
 
     @Override

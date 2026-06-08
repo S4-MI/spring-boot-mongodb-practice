@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: template-ingress
+  namespace: template
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    # WebSocket: keep upstream connection open longer
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: template.local
+      http:
+        paths:
+          # Backend: REST under /api/v1/... and STOMP WS at /api/v1/ws
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          # Everything else -> Next.js frontend
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 3000
