@@ -61,7 +61,7 @@ export function EditTodoDialog({ todo }: { todo: Todo }) {
             }}
         >
             <DialogTrigger render={<Button variant="ghost" size="icon-sm" />}>
-                <Pencil />
+                <Pencil className="text-muted-foreground" />
                 <span className="sr-only">Edit</span>
             </DialogTrigger>
             <DialogContent>

@@ -30,6 +30,19 @@ export const updateTodoSchema = createTodoSchema.partial().extend({
     completed: z.boolean().optional(),
 });
 
+export const exportFormatSchema = z.enum(["CSV", "MARKDOWN", "JSON"]);
+
+export const TODO_EXPORT_FORMATS = [
+    { value: "CSV", label: "CSV", extension: "csv" },
+    { value: "MARKDOWN", label: "Markdown", extension: "md" },
+    { value: "JSON", label: "JSON", extension: "json" },
+] as const satisfies ReadonlyArray<{
+    value: TodoExportFormat;
+    label: string;
+    extension: string;
+}>;
+
+export type TodoExportFormat = z.infer<typeof exportFormatSchema>;
 export type Todo = z.infer<typeof todoSchema>;
 export type PageInfo = z.infer<typeof pageInfoSchema>;
 export type PaginatedTodos = z.infer<typeof paginatedTodosSchema>;

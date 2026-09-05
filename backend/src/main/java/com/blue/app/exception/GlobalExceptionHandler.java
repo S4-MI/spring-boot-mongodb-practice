@@ -3,6 +3,7 @@ package com.blue.app.exception;
 import com.blue.app.dto.ErrorResponse;
 import jakarta.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @RestControllerAdvice
@@ -71,6 +73,20 @@ public class GlobalExceptionHandler {
         log.warn("Entity validation failed: {}", fieldErrors);
         return ResponseEntity.badRequest()
                 .body(new ErrorResponse("Validation failed", LocalDateTime.now(), fieldErrors));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        String message = "Invalid value for parameter '" + ex.getName() + "'";
+        Class<?> required = ex.getRequiredType();
+        if (required != null && required.isEnum()) {
+            message += ". Expected one of: " + Arrays.stream(required.getEnumConstants())
+                    .map(Object::toString)
+                    .collect(Collectors.joining(", "));
+        }
+        log.warn("Parameter type mismatch: {}", message);
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse(message, LocalDateTime.now(), "invalid_parameter"));
     }
 
     @ExceptionHandler(ForbiddenException.class)

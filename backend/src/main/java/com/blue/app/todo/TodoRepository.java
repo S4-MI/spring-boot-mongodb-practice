@@ -1,5 +1,6 @@
 package com.blue.app.todo;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -8,6 +9,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface TodoRepository extends MongoRepository<Todo, String> {
     Page<Todo> findByUserId(String userId, Pageable pageable);
+
+    List<Todo> findByUserIdOrderByCreatedAtDesc(String userId);
 
     Optional<Todo> findByIdAndUserId(String id, String userId);
 }

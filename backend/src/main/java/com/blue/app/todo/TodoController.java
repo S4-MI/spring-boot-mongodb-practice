@@ -3,6 +3,8 @@ package com.blue.app.todo;
 import com.blue.app.todo.dto.TodoCreateRequest;
 import com.blue.app.todo.dto.TodoResponse;
 import com.blue.app.todo.dto.TodoUpdateRequest;
+import com.blue.app.todo.export.TodoExportFormat;
+import com.blue.app.todo.export.TodoExportService;
 import com.blue.app.users.User;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -11,6 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -31,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Todos", description = "Per-user todo CRUD with pagination")
 public class TodoController {
     private final TodoService service;
+    private final TodoExportService exportService;
 
     @GetMapping("/todos")
     public Page<TodoResponse> list(
@@ -39,6 +45,20 @@ public class TodoController {
     ) {
         String userId = ((User) auth.getPrincipal()).getId();
         return service.list(userId, pageable);
+    }
+
+    @GetMapping("/todos/export")
+    public ResponseEntity<byte[]> export(Authentication auth, @RequestParam TodoExportFormat format) {
+        String userId = ((User) auth.getPrincipal()).getId();
+        byte[] body = exportService.export(userId, format);
+
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.parseMediaType(format.contentType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment().filename(exportService.fileName(format)).build().toString())
+                .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
+                .body(body);
     }
 
     @PostMapping(value = "/todos", consumes = MediaType.APPLICATION_JSON_VALUE)

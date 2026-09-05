@@ -29,9 +29,15 @@ export function DeleteTodoButton({ todoId }: { todoId: string }) {
     return (
         <AlertDialog>
             <AlertDialogTrigger
-                render={<Button variant="ghost" size="icon-sm" />}
+                render={
+                    <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="group/delete hover:bg-destructive/10"
+                    />
+                }
             >
-                <Trash2 className="text-destructive" />
+                <Trash2 className="text-muted-foreground transition-colors group-hover/delete:text-destructive" />
                 <span className="sr-only">Delete</span>
             </AlertDialogTrigger>
             <AlertDialogContent size="sm">

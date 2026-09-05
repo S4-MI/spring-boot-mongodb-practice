@@ -3,6 +3,7 @@ package com.blue.app.todo;
 import com.blue.app.exception.ResourceNotFound;
 import com.blue.app.todo.dto.TodoResponse;
 import com.mongodb.client.result.DeleteResult;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,10 @@ public class TodoService {
 
     public Page<TodoResponse> list(String userId, Pageable pageable) {
         return repository.findByUserId(userId, pageable).map(TodoResponse::from);
+    }
+
+    public List<Todo> listAll(String userId) {
+        return repository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
     public Todo getTodoById(String id, String userId) {

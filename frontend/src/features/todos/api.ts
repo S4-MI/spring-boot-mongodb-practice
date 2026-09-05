@@ -3,8 +3,20 @@ import {
     todoSchema,
     paginatedTodosSchema,
     type CreateTodoInput,
+    type TodoExportFormat,
     type UpdateTodoInput,
 } from "@/features/todos/schemas";
+
+/** Pull the server-provided filename out of a Content-Disposition header. */
+function parseFileName(header: string | undefined, fallback: string) {
+    if (!header) return fallback;
+
+    const encoded = /filename\*=UTF-8''([^;]+)/i.exec(header);
+    if (encoded) return decodeURIComponent(encoded[1]);
+
+    const plain = /filename="?([^";]+)"?/i.exec(header);
+    return plain ? plain[1] : fallback;
+}
 
 export const todosApi = {
     async list(page: number = 0, size: number = 10) {
@@ -31,5 +43,20 @@ export const todosApi = {
 
     async delete(id: string) {
         await apiClient.delete(`/todos/${id}`);
+    },
+
+    async export(format: TodoExportFormat) {
+        const response = await apiClient.get("/todos/export", {
+            params: { format },
+            responseType: "blob",
+        });
+
+        return {
+            blob: response.data as Blob,
+            fileName: parseFileName(
+                response.headers["content-disposition"],
+                `todos.${format.toLowerCase()}`,
+            ),
+        };
     },
 };
