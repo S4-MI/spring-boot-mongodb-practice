@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
-  namespace: template
   labels:
     app: backend
+  name: backend
+  namespace: template
 spec:
   replicas: 1
   selector:
@@ -15,6 +15,13 @@ spec:
       labels:
         app: backend
     spec:
+      initContainers:
+        - name: fix-log-perms
+          image: busybox
+          command: ["sh", "-c", "chown -R 1001:999 /var/log/backend"]
+          volumeMounts:
+            - name: backend-logs
+              mountPath: /var/log/backend
       containers:
         - name: backend
           image: template-backend:latest
@@ -54,6 +61,25 @@ spec:
               memory: "512Mi"
             limits:
               memory: "1Gi"
+          volumeMounts:
+            - name: backend-logs
+              mountPath: /var/log/backend
+      volumes:
+        - name: backend-logs
+          persistentVolumeClaim:
+            claimName: backend-logs-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backend-logs-pvc
+  namespace: template
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
 ---
 apiVersion: v1
 kind: Service
