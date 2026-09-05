@@ -2,6 +2,7 @@ import { apiClient } from "@/api/client";
 import {
     todoSchema,
     paginatedTodosSchema,
+    TODO_EXPORT_FORMATS,
     type CreateTodoInput,
     type TodoExportFormat,
     type UpdateTodoInput,
@@ -51,11 +52,15 @@ export const todosApi = {
             responseType: "blob",
         });
 
+        const extension =
+            TODO_EXPORT_FORMATS.find((f) => f.value === format)?.extension ??
+            format.toLowerCase();
+
         return {
             blob: response.data as Blob,
             fileName: parseFileName(
                 response.headers["content-disposition"],
-                `todos.${format.toLowerCase()}`,
+                `todos.${extension}`,
             ),
         };
     },

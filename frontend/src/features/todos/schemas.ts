@@ -30,10 +30,18 @@ export const updateTodoSchema = createTodoSchema.partial().extend({
     completed: z.boolean().optional(),
 });
 
-export const exportFormatSchema = z.enum(["CSV", "MARKDOWN", "JSON"]);
+export const exportFormatSchema = z.enum([
+    "CSV",
+    "MARKDOWN",
+    "JSON",
+    "EXCEL",
+    "WORD",
+]);
 
 export const TODO_EXPORT_FORMATS = [
     { value: "CSV", label: "CSV", extension: "csv" },
+    { value: "EXCEL", label: "Excel", extension: "xlsx" },
+    { value: "WORD", label: "Word", extension: "docx" },
     { value: "MARKDOWN", label: "Markdown", extension: "md" },
     { value: "JSON", label: "JSON", extension: "json" },
 ] as const satisfies ReadonlyArray<{
