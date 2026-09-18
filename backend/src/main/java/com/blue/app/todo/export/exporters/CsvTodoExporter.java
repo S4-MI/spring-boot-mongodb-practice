@@ -14,6 +14,9 @@ public class CsvTodoExporter implements TodoExporter {
 
     private static final String HEADER = "id,title,description,completed,createdAt,updatedAt";
 
+    /** Excel reads a CSV as the system ANSI codepage unless a UTF-8 BOM tells it otherwise. */
+    private static final byte[] UTF8_BOM = { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
+
     @Override
     public TodoExportFormat format() {
         return TodoExportFormat.CSV;
@@ -34,7 +37,12 @@ public class CsvTodoExporter implements TodoExporter {
                     .append("\r\n");
         }
 
-        return sb.toString().getBytes(StandardCharsets.UTF_8);
+        byte[] csv = sb.toString().getBytes(StandardCharsets.UTF_8);
+        byte[] out = new byte[UTF8_BOM.length + csv.length];
+        System.arraycopy(UTF8_BOM, 0, out, 0, UTF8_BOM.length);
+        System.arraycopy(csv, 0, out, UTF8_BOM.length, csv.length);
+
+        return out;
     }
 
     /** RFC 4180: wrap in quotes when needed, doubling any embedded quote. */
